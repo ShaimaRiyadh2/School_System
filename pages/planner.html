@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مخطط الدروس - School System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#A88EDB'}}}}}</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+<body class="bg-gray-100">
+<div id="app-layout"></div>
+<script src="../js/layout.js"></script>
+<script>
+const auth = getAuth();
+if(auth){ renderLayout('planner.html');
+document.getElementById('breadcrumb-slot').innerHTML=`<span class="text-gray-400"><i class="fas fa-home ml-1"></i></span><span class="mx-2 text-gray-300">/</span><span class="font-medium text-gray-700">مخطط الدروس</span>`;
+
+const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+let lessons = [
+    { id:1, day:0, time:'08:00', name:'الرياضيات',    class:'10-أ', hw:false, color:'bg-purple-100 border-purple-200 text-purple-800' },
+    { id:2, day:1, time:'08:00', name:'الجبر',         class:'11-ب', hw:true,  color:'bg-blue-100 border-blue-200 text-blue-800' },
+    { id:3, day:1, time:'10:00', name:'الإحصاء',       class:'12-أ', hw:false, color:'bg-green-100 border-green-200 text-green-800' },
+    { id:4, day:2, time:'09:00', name:'الرياضيات',    class:'10-أ', hw:true,  color:'bg-purple-100 border-purple-200 text-purple-800' },
+    { id:5, day:3, time:'08:00', name:'الجبر',         class:'11-ب', hw:false, color:'bg-blue-100 border-blue-200 text-blue-800' },
+    { id:6, day:4, time:'10:00', name:'اختبار الفصل', class:'10-أ', hw:false, color:'bg-red-100 border-red-200 text-red-800' },
+];
+const colors = [
+    'bg-purple-100 border-purple-200 text-purple-800',
+    'bg-blue-100 border-blue-200 text-blue-800',
+    'bg-green-100 border-green-200 text-green-800',
+    'bg-red-100 border-red-200 text-red-800',
+    'bg-orange-100 border-orange-200 text-orange-800',
+    'bg-teal-100 border-teal-200 text-teal-800',
+];
+let showAddForm = false;
+
+function render() {
+    document.getElementById('page-content').innerHTML = `
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-book-open ml-2 text-purple-500"></i>مخطط الدروس</h2>
+        <button onclick="toggleAddForm()" class="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-xl hover:bg-purple-700 text-sm font-medium">
+            <i class="fas fa-plus"></i> إضافة درس
+        </button>
+    </div>
+
+    ${showAddForm ? `
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <h3 class="font-semibold text-gray-700 mb-4 text-sm"><i class="fas fa-plus-circle ml-2 text-purple-500"></i>إضافة درس جديد</h3>
+        <div class="grid grid-cols-2 gap-4">
+            <div><label class="block text-xs font-medium text-gray-600 mb-1">اسم الدرس *</label>
+            <input id="les-name" type="text" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" placeholder="مثال: الرياضيات"></div>
+            <div><label class="block text-xs font-medium text-gray-600 mb-1">اليوم</label>
+            <select id="les-day" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
+                ${days.map((d,i)=>`<option value="${i}">${d}</option>`).join('')}
+            </select></div>
+            <div><label class="block text-xs font-medium text-gray-600 mb-1">الوقت *</label>
+            <input id="les-time" type="time" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"></div>
+            <div><label class="block text-xs font-medium text-gray-600 mb-1">الفصل</label>
+            <select id="les-class" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
+                ${['10-أ','10-ب','11-أ','11-ب','12-أ'].map(f=>`<option>${f}</option>`).join('')}
+            </select></div>
+            <div class="flex items-center gap-2 mt-2">
+                <input type="checkbox" id="les-hw" class="rounded">
+                <label for="les-hw" class="text-sm text-gray-600">يوجد واجب منزلي</label>
+            </div>
+        </div>
+        <div class="flex gap-3 mt-4">
+            <button onclick="addLesson()" class="bg-purple-600 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-purple-700"><i class="fas fa-save ml-1"></i>إضافة</button>
+            <button onclick="toggleAddForm()" class="px-6 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50">إلغاء</button>
+        </div>
+    </div>` : ''}
+
+    <div class="grid grid-cols-7 gap-3 mb-6">
+        ${days.map((d,i)=>`
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-3 py-2 text-center border-b border-gray-100 ${i===0?'bg-purple-600 text-white':'bg-gray-50 text-gray-600'}">
+                <p class="text-xs font-medium">${d}</p>
+            </div>
+            <div class="p-2 min-h-24 space-y-1">
+                ${lessons.filter(l=>l.day===i).map(l=>`
+                <div class="border rounded-lg p-2 text-xs ${l.color}">
+                    <p class="font-semibold truncate">${l.name}</p>
+                    <p class="mt-0.5 opacity-70">${l.time} — ${l.class}</p>
+                    ${l.hw?'<span class="inline-block mt-1 px-1.5 py-0.5 bg-orange-100 text-orange-600 rounded text-xs"><i class="fas fa-tasks ml-0.5"></i>واجب</span>':''}
+                </div>`).join('')}
+            </div>
+        </div>`).join('')}
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h3 class="font-semibold text-gray-800 text-sm">دروس هذا الأسبوع (${lessons.length})</h3>
+        </div>
+        <div class="divide-y divide-gray-50">
+            ${lessons.map(l=>`
+            <div class="px-6 py-4 flex items-center gap-4">
+                <div class="w-12 h-12 bg-purple-100 text-purple-700 rounded-xl flex flex-col items-center justify-center flex-shrink-0">
+                    <span class="text-xs font-bold">${days[l.day].substring(0,2)}</span>
+                    <span class="text-xs">${l.time}</span>
+                </div>
+                <div class="flex-1">
+                    <p class="font-semibold text-gray-800">${l.name}</p>
+                    <p class="text-xs text-gray-400 mt-1">الفصل ${l.class}</p>
+                    ${l.hw?'<div class="mt-2 p-2 bg-orange-50 rounded-lg text-xs text-orange-700"><i class="fas fa-tasks ml-1"></i>يوجد واجب منزلي</div>':''}
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="deleteLesson(${l.id})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>`).join('')}
+        </div>
+    </div>`;
+}
+
+function toggleAddForm() { showAddForm = !showAddForm; render(); }
+function addLesson() {
+    const name = document.getElementById('les-name').value.trim();
+    const time = document.getElementById('les-time').value;
+    if (!name || !time) { showFlash('يرجى ملء جميع الحقول المطلوبة.', 'error'); return; }
+    const day = parseInt(document.getElementById('les-day').value);
+    const cls = document.getElementById('les-class').value;
+    const hw  = document.getElementById('les-hw').checked;
+    lessons.push({ id: Date.now(), day, time, name, class: cls, hw, color: colors[lessons.length % colors.length] });
+    showAddForm = false;
+    render();
+    showFlash('تم إضافة الدرس بنجاح.');
+}
+function deleteLesson(id) {
+    if (!confirm('حذف هذا الدرس؟')) return;
+    lessons = lessons.filter(l => l.id !== id);
+    render();
+    showFlash('تم حذف الدرس.');
+}
+
+render();
+}
+</script>
+</body>
+</html>

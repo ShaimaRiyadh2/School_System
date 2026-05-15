@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الحضور - School System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#A88EDB'}}}}}</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+<body class="bg-gray-100">
+<div id="app-layout"></div>
+<script src="../js/layout.js"></script>
+<script>
+const auth = getAuth();
+if(auth){ renderLayout('attendance.html');
+document.getElementById('breadcrumb-slot').innerHTML=`<span class="text-gray-400"><i class="fas fa-home ml-1"></i></span><span class="mx-2 text-gray-300">/</span><span class="font-medium text-gray-700">الحضور</span>`;
+
+const students = [
+    { id:1, name:'محمد أحمد العمري',    status:'Present' },
+    { id:2, name:'سارة خالد المنصور',   status:'Present' },
+    { id:3, name:'عبدالله فهد الزهراني',status:'Absent'  },
+    { id:4, name:'نورة سعد القحطاني',   status:'Late'    },
+    { id:5, name:'فيصل محمد الدوسري',   status:'Present' },
+    { id:6, name:'ريم عبدالرحمن الشمري',status:'Present' },
+];
+
+const types = ['Present','Absent','Late','Left Early','Remote'];
+const typeAr = { Present:'حاضر', Absent:'غائب', Late:'متأخر', 'Left Early':'خرج مبكراً', Remote:'عن بُعد' };
+const typeColor = { Present:'bg-green-500', Absent:'bg-red-500', Late:'bg-orange-500', 'Left Early':'bg-yellow-500', Remote:'bg-blue-500' };
+
+let selectedForm = '10-أ';
+let selectedDate = new Date().toISOString().split('T')[0];
+let attendance = {};
+students.forEach(s => attendance[s.id] = s.status);
+
+function render() {
+    document.getElementById('page-content').innerHTML = `
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-calendar-check ml-2 text-purple-500"></i>تسجيل الحضور</h2>
+        <a href="attendance-report.html" class="flex items-center gap-2 border border-gray-200 text-gray-600 px-4 py-2 rounded-xl hover:bg-gray-50 text-sm">
+            <i class="fas fa-chart-bar"></i> التقارير
+        </a>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6">
+        <div class="flex flex-wrap gap-4 items-end">
+            <div class="flex-1 min-w-48">
+                <label class="block text-xs font-medium text-gray-600 mb-1">الفصل الدراسي</label>
+                <select onchange="selectedForm=this.value;render()" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
+                    ${['10-أ','10-ب','11-أ','11-ب','12-أ'].map(f=>`<option ${f===selectedForm?'selected':''}>${f}</option>`).join('')}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">التاريخ</label>
+                <input type="date" value="${selectedDate}" onchange="selectedDate=this.value"
+                       class="px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="font-semibold text-gray-800">${students.length} طالب — ${selectedDate}</h3>
+            <div class="flex gap-2">
+                ${['Present','Absent','Late'].map(t=>`
+                <button onclick="markAll('${t}')"
+                        class="text-xs px-3 py-1.5 rounded-lg border transition-colors
+                               ${t==='Present'?'border-green-300 text-green-700 hover:bg-green-50':t==='Absent'?'border-red-300 text-red-700 hover:bg-red-50':'border-orange-300 text-orange-700 hover:bg-orange-50'}">
+                    ${typeAr[t]} للكل
+                </button>`).join('')}
+            </div>
+        </div>
+
+        <div class="divide-y divide-gray-50">
+            ${students.map(s=>`
+            <div class="px-6 py-4 flex flex-wrap items-center gap-4">
+                <div class="flex items-center gap-3 w-48">
+                    <div class="w-9 h-9 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-sm">${s.name.charAt(0)}</div>
+                    <p class="font-medium text-gray-800 text-sm">${s.name}</p>
+                </div>
+                <div class="flex gap-2 flex-wrap">
+                    ${types.map(t=>`
+                    <button onclick="setAttendance(${s.id},'${t}')"
+                            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
+                                   ${attendance[s.id]===t?typeColor[t]+' text-white':'bg-gray-100 text-gray-500 hover:bg-gray-200'}">
+                        ${typeAr[t]}
+                    </button>`).join('')}
+                </div>
+            </div>`).join('')}
+        </div>
+
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50">
+            <button onclick="saveAttendance()" class="flex items-center gap-2 bg-purple-600 text-white px-8 py-2.5 rounded-xl text-sm font-medium hover:bg-purple-700 transition-colors">
+                <i class="fas fa-save"></i> حفظ الحضور
+            </button>
+        </div>
+    </div>`;
+}
+
+function setAttendance(id, type) { attendance[id] = type; render(); }
+function markAll(type) { students.forEach(s => attendance[s.id] = type); render(); }
+function saveAttendance() { showFlash('تم حفظ الحضور بنجاح.'); }
+
+render();
+}
+</script>
+</body>
+</html>

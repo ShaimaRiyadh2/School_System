@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الطلاب - School System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#A88EDB'}}}}}</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+<body class="bg-gray-100">
+<div id="app-layout"></div>
+<script src="../js/layout.js"></script>
+<script>
+const auth = getAuth();
+if(auth){ renderLayout('students.html');
+document.getElementById('breadcrumb-slot').innerHTML=`<span class="text-gray-400"><i class="fas fa-home ml-1"></i></span><span class="mx-2 text-gray-300">/</span><span class="font-medium text-gray-700">الطلاب</span>`;
+
+const students = [
+    { id:1, name:'محمد أحمد العمري',   username:'m.omari',   year:'الصف العاشر',  form:'10-أ', email:'m.omari@school.com',   status:'Full' },
+    { id:2, name:'سارة خالد المنصور',  username:'s.mansour', year:'الصف العاشر',  form:'10-ب', email:'s.mansour@school.com',  status:'Full' },
+    { id:3, name:'عبدالله فهد الزهراني',username:'a.zahrani', year:'الصف الحادي عشر',form:'11-أ',email:'a.zahrani@school.com', status:'Full' },
+    { id:4, name:'نورة سعد القحطاني',  username:'n.qahtani', year:'الصف الحادي عشر',form:'11-ب',email:'n.qahtani@school.com', status:'Full' },
+    { id:5, name:'فيصل محمد الدوسري',  username:'f.dosari',  year:'الصف الثاني عشر',form:'12-أ',email:'f.dosari@school.com', status:'Left' },
+    { id:6, name:'ريم عبدالرحمن الشمري',username:'r.shamri', year:'الصف العاشر',  form:'10-أ', email:'r.shamri@school.com',   status:'Full' },
+];
+
+let filtered = [...students];
+let showForm = false;
+
+function render() {
+    document.getElementById('page-content').innerHTML = `
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-user-graduate ml-2 text-purple-500"></i>الطلاب</h2>
+        <button onclick="toggleForm()" class="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-xl hover:bg-purple-700 text-sm font-medium">
+            <i class="fas fa-plus"></i> إضافة طالب
+        </button>
+    </div>
+
+    ${showForm ? `
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <h3 class="font-semibold text-gray-700 mb-4 text-sm"><i class="fas fa-user-plus ml-2 text-purple-500"></i>إضافة طالب جديد</h3>
+        <div class="grid grid-cols-2 gap-4">
+            <div><label class="block text-xs font-medium text-gray-600 mb-1">الاسم الكامل *</label>
+            <input id="new-name" type="text" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" placeholder="الاسم الكامل"></div>
+            <div><label class="block text-xs font-medium text-gray-600 mb-1">اسم المستخدم *</label>
+            <input id="new-user" type="text" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" placeholder="username"></div>
+            <div><label class="block text-xs font-medium text-gray-600 mb-1">البريد الإلكتروني *</label>
+            <input id="new-email" type="email" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" placeholder="email@school.com"></div>
+            <div><label class="block text-xs font-medium text-gray-600 mb-1">الفصل</label>
+            <select id="new-form" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
+                <option>10-أ</option><option>10-ب</option><option>11-أ</option><option>11-ب</option><option>12-أ</option>
+            </select></div>
+        </div>
+        <div class="flex gap-3 mt-4">
+            <button onclick="addStudent()" class="bg-purple-600 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-purple-700"><i class="fas fa-save ml-1"></i>إضافة</button>
+            <button onclick="toggleForm()" class="px-6 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50">إلغاء</button>
+        </div>
+    </div>` : ''}
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
+        <div class="flex flex-wrap gap-3">
+            <div class="flex-1 min-w-48 relative">
+                <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                <input id="search-input" type="text" placeholder="بحث..." onkeyup="filterStudents()"
+                       class="w-full pr-9 pl-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
+            </div>
+            <select id="form-filter" onchange="filterStudents()" class="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
+                <option value="">كل الفصول</option>
+                <option>10-أ</option><option>10-ب</option><option>11-أ</option><option>11-ب</option><option>12-أ</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-3 border-b border-gray-100">
+            <span class="text-sm text-gray-500">إجمالي: <strong>${filtered.length}</strong> طالب</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">الطالب</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">المرحلة</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">الفصل</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">البريد</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">الحالة</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    ${filtered.map(s=>`
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-sm">${s.name.charAt(0)}</div>
+                                <div>
+                                    <p class="font-medium text-gray-800">${s.name}</p>
+                                    <p class="text-xs text-gray-400">${s.username}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-3 text-gray-600">${s.year}</td>
+                        <td class="px-6 py-3 text-gray-600">${s.form}</td>
+                        <td class="px-6 py-3 text-gray-500 text-xs">${s.email}</td>
+                        <td class="px-6 py-3">
+                            <span class="px-2 py-1 rounded-full text-xs font-medium ${s.status==='Full'?'bg-green-100 text-green-700':'bg-gray-100 text-gray-500'}">
+                                ${s.status==='Full'?'نشط':'مغادر'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-3">
+                            <div class="flex items-center gap-3">
+                                <button onclick="viewStudent(${s.id})" class="text-blue-500 hover:text-blue-700"><i class="fas fa-eye"></i></button>
+                                <button class="text-yellow-500 hover:text-yellow-700"><i class="fas fa-edit"></i></button>
+                                <button onclick="archiveStudent(${s.id})" class="text-red-400 hover:text-red-600"><i class="fas fa-archive"></i></button>
+                            </div>
+                        </td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>
+    </div>`;
+}
+
+function toggleForm() { showForm = !showForm; render(); }
+function filterStudents() {
+    const q = document.getElementById('search-input')?.value.toLowerCase() || '';
+    const f = document.getElementById('form-filter')?.value || '';
+    filtered = students.filter(s =>
+        (!q || s.name.toLowerCase().includes(q) || s.username.includes(q)) &&
+        (!f || s.form === f)
+    );
+    render();
+}
+function addStudent() {
+    const name = document.getElementById('new-name').value.trim();
+    const user = document.getElementById('new-user').value.trim();
+    const email = document.getElementById('new-email').value.trim();
+    const form = document.getElementById('new-form').value;
+    if (!name || !user || !email) { showFlash('يرجى ملء جميع الحقول المطلوبة.', 'error'); return; }
+    students.push({ id: students.length+1, name, username: user, year:'الصف العاشر', form, email, status:'Full' });
+    filtered = [...students];
+    showForm = false;
+    render();
+    showFlash('تم إضافة الطالب بنجاح.');
+}
+function archiveStudent(id) {
+    if (!confirm('أرشفة هذا الطالب؟')) return;
+    const s = students.find(x=>x.id===id);
+    if (s) { s.status = 'Left'; filtered = [...students]; render(); showFlash('تم أرشفة الطالب.'); }
+}
+function viewStudent(id) { window.location.href = 'student-profile.html?id=' + id; }
+
+render();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ملف الطالب - School System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#A88EDB'}}}}}</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+<body class="bg-gray-100">
+<div id="app-layout"></div>
+<script src="../js/layout.js"></script>
+<script>
+const auth = getAuth();
+if (auth) {
+    renderLayout('students.html');
+
+    const params = new URLSearchParams(window.location.search);
+    const studentId = parseInt(params.get('id')) || 1;
+
+    const students = [
+        { id:1, name:'محمد أحمد العمري',    username:'m.omari',   year:'الصف العاشر',       form:'10-أ', email:'m.omari@school.com',   phone:'0501234567', status:'Full', dob:'2008-03-15', guardian:'أحمد العمري' },
+        { id:2, name:'سارة خالد المنصور',   username:'s.mansour', year:'الصف العاشر',       form:'10-ب', email:'s.mansour@school.com',  phone:'0507654321', status:'Full', dob:'2008-07-22', guardian:'خالد المنصور' },
+        { id:3, name:'عبدالله فهد الزهراني',username:'a.zahrani', year:'الصف الحادي عشر',   form:'11-أ', email:'a.zahrani@school.com',  phone:'0509876543', status:'Full', dob:'2007-11-05', guardian:'فهد الزهراني' },
+        { id:4, name:'نورة سعد القحطاني',   username:'n.qahtani', year:'الصف الحادي عشر',   form:'11-ب', email:'n.qahtani@school.com',  phone:'0502345678', status:'Full', dob:'2007-04-18', guardian:'سعد القحطاني' },
+        { id:5, name:'فيصل محمد الدوسري',   username:'f.dosari',  year:'الصف الثاني عشر',   form:'12-أ', email:'f.dosari@school.com',   phone:'0508765432', status:'Left', dob:'2006-09-30', guardian:'محمد الدوسري' },
+        { id:6, name:'ريم عبدالرحمن الشمري',username:'r.shamri',  year:'الصف العاشر',       form:'10-أ', email:'r.shamri@school.com',   phone:'0503456789', status:'Full', dob:'2008-01-12', guardian:'عبدالرحمن الشمري' },
+    ];
+
+    const s = students.find(x => x.id === studentId) || students[0];
+
+    document.getElementById('breadcrumb-slot').innerHTML = `
+        <span class="text-gray-400"><i class="fas fa-home ml-1"></i></span>
+        <span class="mx-2 text-gray-300">/</span>
+        <a href="students.html" class="text-gray-500 hover:text-purple-600">الطلاب</a>
+        <span class="mx-2 text-gray-300">/</span>
+        <span class="font-medium text-gray-700">${s.name}</span>`;
+
+    const grades = [
+        { subject:'الرياضيات',    q1:85, q2:88, exam:82, avg:85 },
+        { subject:'اللغة العربية',q1:90, q2:92, exam:88, avg:90 },
+        { subject:'العلوم',       q1:78, q2:80, exam:75, avg:78 },
+        { subject:'الإنجليزية',   q1:92, q2:95, exam:90, avg:92 },
+        { subject:'التاريخ',      q1:70, q2:72, exam:68, avg:70 },
+    ];
+
+    const attendance = [
+        { date:'2025-01-05', status:'Present' }, { date:'2025-01-06', status:'Present' },
+        { date:'2025-01-07', status:'Late'    }, { date:'2025-01-08', status:'Present' },
+        { date:'2025-01-09', status:'Absent'  }, { date:'2025-01-12', status:'Present' },
+        { date:'2025-01-13', status:'Present' }, { date:'2025-01-14', status:'Present' },
+        { date:'2025-01-15', status:'Present' }, { date:'2025-01-16', status:'Present' },
+    ];
+
+    const statusAr = { Present:'حاضر', Absent:'غائب', Late:'متأخر' };
+    const statusColor = { Present:'bg-green-100 text-green-700', Absent:'bg-red-100 text-red-700', Late:'bg-orange-100 text-orange-700' };
+    const presentCount = attendance.filter(a => a.status === 'Present').length;
+    const attendancePct = Math.round(presentCount / attendance.length * 100);
+    const overallAvg = Math.round(grades.reduce((a,b) => a + b.avg, 0) / grades.length);
+
+    document.getElementById('page-content').innerHTML = `
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-user-graduate ml-2 text-purple-500"></i>ملف الطالب</h2>
+        <div class="flex gap-2">
+            <button onclick="window.print()" class="flex items-center gap-2 border border-gray-200 text-gray-600 px-4 py-2 rounded-xl hover:bg-gray-50 text-sm">
+                <i class="fas fa-print"></i> طباعة
+            </button>
+            <a href="students.html" class="flex items-center gap-2 border border-gray-200 text-gray-600 px-4 py-2 rounded-xl hover:bg-gray-50 text-sm">
+                <i class="fas fa-arrow-right"></i> رجوع
+            </a>
+        </div>
+    </div>
+
+    <!-- Profile Header -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <div class="flex flex-wrap items-center gap-6">
+            <div class="w-20 h-20 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center text-3xl font-bold flex-shrink-0">
+                ${s.name.charAt(0)}
+            </div>
+            <div class="flex-1">
+                <div class="flex flex-wrap items-center gap-3 mb-1">
+                    <h3 class="text-xl font-bold text-gray-800">${s.name}</h3>
+                    <span class="px-2 py-1 rounded-full text-xs font-medium ${s.status==='Full'?'bg-green-100 text-green-700':'bg-gray-100 text-gray-500'}">
+                        ${s.status==='Full'?'نشط':'مغادر'}
+                    </span>
+                </div>
+                <p class="text-gray-500 text-sm">${s.year} — الفصل ${s.form}</p>
+                <p class="text-gray-400 text-xs mt-1">@${s.username}</p>
+            </div>
+            <div class="grid grid-cols-3 gap-6 text-center">
+                <div>
+                    <p class="text-2xl font-bold ${attendancePct>=90?'text-green-600':attendancePct>=75?'text-blue-600':'text-red-600'}">${attendancePct}%</p>
+                    <p class="text-xs text-gray-500">نسبة الحضور</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold ${overallAvg>=90?'text-green-600':overallAvg>=75?'text-blue-600':'text-orange-600'}">${overallAvg}%</p>
+                    <p class="text-xs text-gray-500">المعدل العام</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-purple-600">${grades.length}</p>
+                    <p class="text-xs text-gray-500">المواد</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Personal Info -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <h3 class="font-semibold text-gray-800 mb-4 text-sm"><i class="fas fa-id-card ml-2 text-blue-500"></i>المعلومات الشخصية</h3>
+            <div class="space-y-3">
+                ${[
+                    { label:'البريد الإلكتروني', value: s.email,    icon:'fa-envelope'  },
+                    { label:'رقم الجوال',        value: s.phone,    icon:'fa-phone'     },
+                    { label:'تاريخ الميلاد',     value: s.dob,      icon:'fa-birthday-cake' },
+                    { label:'ولي الأمر',         value: s.guardian, icon:'fa-user-tie'  },
+                ].map(i => `
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <i class="fas ${i.icon} text-gray-500 text-xs"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400">${i.label}</p>
+                        <p class="text-sm font-medium text-gray-700">${i.value}</p>
+                    </div>
+                </div>`).join('')}
+            </div>
+        </div>
+
+        <!-- Grades -->
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-800 text-sm"><i class="fas fa-star ml-2 text-yellow-500"></i>الدرجات</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500">المادة</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500">الفصل الأول</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500">الفصل الثاني</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500">الاختبار</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500">المعدل</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        ${grades.map(g => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 font-medium text-gray-800">${g.subject}</td>
+                            ${[g.q1, g.q2, g.exam, g.avg].map(v => `
+                            <td class="px-4 py-3 text-center">
+                                <span class="inline-block px-2 py-1 rounded-lg text-xs font-bold
+                                    ${v>=90?'bg-green-100 text-green-700':v>=75?'bg-blue-100 text-blue-700':v>=60?'bg-orange-100 text-orange-700':'bg-red-100 text-red-700'}">
+                                    ${v}
+                                </span>
+                            </td>`).join('')}
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Log -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h3 class="font-semibold text-gray-800 text-sm"><i class="fas fa-calendar-check ml-2 text-green-500"></i>سجل الحضور الأخير</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">التاريخ</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500">الحالة</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    ${attendance.map(a => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-3 text-gray-700">${a.date}</td>
+                        <td class="px-6 py-3 text-center">
+                            <span class="px-3 py-1 rounded-full text-xs font-medium ${statusColor[a.status]}">${statusAr[a.status]}</span>
+                        </td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>
+    </div>`;
+}
+</script>
+</body>
+</html>

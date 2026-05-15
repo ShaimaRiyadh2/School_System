@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أولياء الأمور - School System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#A88EDB'}}}}}</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+<body class="bg-gray-100">
+<div id="app-layout"></div>
+<script src="../js/layout.js"></script>
+<script>
+const auth = getAuth();
+if(auth){
+    if(auth.role_category !== 'Admin'){ window.location.href='dashboard.html'; }
+    renderLayout('parents.html');
+    document.getElementById('breadcrumb-slot').innerHTML=`
+        <span class="text-gray-400"><i class="fas fa-home ml-1"></i></span>
+        <span class="mx-2 text-gray-300">/</span>
+        <span class="font-medium text-gray-700">أولياء الأمور</span>`;
+
+    let parents = [
+        { id:1, name:'أحمد محمد العمري',    username:'p.omari',   phone:'0501234567', email:'a.omari@gmail.com',   children:['محمد أحمد العمري'],          status:'active' },
+        { id:2, name:'خالد سعد المنصور',    username:'p.mansour', phone:'0507654321', email:'k.mansour@gmail.com',  children:['سارة خالد المنصور'],         status:'active' },
+        { id:3, name:'فهد علي الزهراني',    username:'p.zahrani', phone:'0509876543', email:'f.zahrani@gmail.com',  children:['عبدالله فهد الزهراني'],      status:'active' },
+        { id:4, name:'سعد ناصر القحطاني',   username:'p.qahtani', phone:'0502345678', email:'s.qahtani@gmail.com',  children:['نورة سعد القحطاني'],         status:'active' },
+        { id:5, name:'محمد عبدالله الدوسري',username:'p.dosari',  phone:'0508765432', email:'m.dosari@gmail.com',   children:['فيصل محمد الدوسري'],         status:'inactive'},
+        { id:6, name:'عبدالرحمن سالم الشمري',username:'p.shamri', phone:'0503456789', email:'a.shamri@gmail.com',   children:['ريم عبدالرحمن الشمري'],      status:'active' },
+    ];
+
+    const allStudents = ['محمد أحمد العمري','سارة خالد المنصور','عبدالله فهد الزهراني','نورة سعد القحطاني','فيصل محمد الدوسري','ريم عبدالرحمن الشمري'];
+    let filtered = [...parents];
+    let showForm = false;
+    let editId   = null;
+    let viewId   = null;
+
+    function render() {
+        if(viewId !== null) { renderProfile(); return; }
+
+        const p = editId ? parents.find(x=>x.id===editId) : null;
+
+        document.getElementById('page-content').innerHTML = `
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-user-tie ml-2 text-purple-500"></i>أولياء الأمور</h2>
+            <button onclick="openForm()" class="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-xl hover:bg-purple-700 text-sm font-medium">
+                <i class="fas fa-plus"></i> إضافة ولي أمر
+            </button>
+        </div>
+
+        ${showForm ? `
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            <h3 class="font-semibold text-gray-700 mb-4 text-sm">
+                <i class="fas fa-${editId?'edit':'user-plus'} ml-2 text-purple-500"></i>
+                ${editId ? 'تعديل ولي الأمر' : 'إضافة ولي أمر جديد'}
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div><label class="block text-xs font-medium text-gray-600 mb-1">الاسم الكامل *</label>
+                <input id="p-name" type="text" value="${p?p.name:''}"
+                    class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" placeholder="الاسم الكامل"></div>
+
+                <div><label class="block text-xs font-medium text-gray-600 mb-1">اسم المستخدم *</label>
+                <input id="p-user" type="text" value="${p?p.username:''}"
+                    class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" placeholder="username"></div>
+
+                <div><label class="block text-xs font-medium text-gray-600 mb-1">رقم الجوال *</label>
+                <input id="p-phone" type="tel" value="${p?p.phone:''}"
+                    class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" placeholder="05xxxxxxxx"></div>
+
+                <div><label class="block text-xs font-medium text-gray-600 mb-1">البريد الإلكتروني</label>
+                <input id="p-email" type="email" value="${p?p.email:''}"
+                    class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" placeholder="email@gmail.com"></div>
+
+                <div class="col-span-2"><label class="block text-xs font-medium text-gray-600 mb-2">الأبناء المرتبطون</label>
+                <div class="grid grid-cols-2 gap-2">
+                    ${allStudents.map(s=>`
+                    <label class="flex items-center gap-2 p-2 border border-gray-100 rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input type="checkbox" value="${s}" class="child-check rounded"
+                            ${p && p.children.includes(s) ? 'checked' : ''}>
+                        <span class="text-sm text-gray-700">${s}</span>
+                    </label>`).join('')}
+                </div></div>
+            </div>
+            <div class="flex gap-3 mt-4">
+                <button onclick="${editId?'saveEdit()':'addParent()'}" class="bg-purple-600 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-purple-700">
+                    <i class="fas fa-save ml-1"></i>${editId?'حفظ التعديل':'إضافة'}
+                </button>
+                <button onclick="closeForm()" class="px-6 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50">إلغاء</button>
+            </div>
+        </div>` : ''}
+
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-4 mb-6">
+            ${[
+                { label:'إجمالي أولياء الأمور', value: parents.length,                              icon:'fa-user-tie',    color:'purple' },
+                { label:'النشطون',              value: parents.filter(p=>p.status==='active').length, icon:'fa-check-circle',color:'green'  },
+                { label:'إجمالي الأبناء',       value: parents.reduce((a,p)=>a+p.children.length,0), icon:'fa-users',       color:'blue'   },
+            ].map(c=>`
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center
+                    ${c.color==='purple'?'bg-purple-50 text-purple-600':c.color==='green'?'bg-green-50 text-green-600':'bg-blue-50 text-blue-600'}">
+                    <i class="fas ${c.icon} text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-gray-800">${c.value}</p>
+                    <p class="text-xs text-gray-500">${c.label}</p>
+                </div>
+            </div>`).join('')}
+        </div>
+
+        <!-- Search -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
+            <div class="relative">
+                <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                <input id="search-input" type="text" placeholder="بحث بالاسم أو رقم الجوال..." onkeyup="filterParents()"
+                    class="w-full pr-9 pl-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-3 border-b border-gray-100">
+                <span class="text-sm text-gray-500">إجمالي: <strong>${filtered.length}</strong> ولي أمر</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">ولي الأمر</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">الجوال</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">البريد</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">الأبناء</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500">الحالة</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        ${filtered.map(p=>`
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-sm">${p.name.charAt(0)}</div>
+                                    <div>
+                                        <p class="font-medium text-gray-800">${p.name}</p>
+                                        <p class="text-xs text-gray-400">@${p.username}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-3 text-gray-600">${p.phone}</td>
+                            <td class="px-6 py-3 text-gray-500 text-xs">${p.email||'—'}</td>
+                            <td class="px-6 py-3">
+                                <div class="flex flex-wrap gap-1">
+                                    ${p.children.map(c=>`
+                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-700 rounded-full text-xs">${c.split(' ')[0]}</span>`).join('')}
+                                </div>
+                            </td>
+                            <td class="px-6 py-3 text-center">
+                                <span class="px-2 py-1 rounded-full text-xs font-medium ${p.status==='active'?'bg-green-100 text-green-700':'bg-gray-100 text-gray-500'}">
+                                    ${p.status==='active'?'نشط':'موقوف'}
+                                </span>
+                            </td>
+                            <td class="px-6 py-3">
+                                <div class="flex items-center justify-center gap-3">
+                                    <button onclick="viewParent(${p.id})" class="text-blue-500 hover:text-blue-700"><i class="fas fa-eye"></i></button>
+                                    <button onclick="openEdit(${p.id})" class="text-yellow-500 hover:text-yellow-700"><i class="fas fa-edit"></i></button>
+                                    <button onclick="deleteParent(${p.id})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>`;
+    }
+
+    function renderProfile() {
+        const p = parents.find(x=>x.id===viewId);
+        document.getElementById('page-content').innerHTML = `
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-user-tie ml-2 text-purple-500"></i>ملف ولي الأمر</h2>
+            <button onclick="viewId=null;render()" class="flex items-center gap-2 border border-gray-200 text-gray-600 px-4 py-2 rounded-xl hover:bg-gray-50 text-sm">
+                <i class="fas fa-arrow-right"></i> رجوع
+            </button>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div class="flex flex-wrap items-center gap-6">
+                <div class="w-20 h-20 rounded-2xl bg-orange-100 text-orange-700 flex items-center justify-center text-3xl font-bold">${p.name.charAt(0)}</div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-1">
+                        <h3 class="text-xl font-bold text-gray-800">${p.name}</h3>
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${p.status==='active'?'bg-green-100 text-green-700':'bg-gray-100 text-gray-500'}">
+                            ${p.status==='active'?'نشط':'موقوف'}
+                        </span>
+                    </div>
+                    <p class="text-gray-400 text-xs">@${p.username}</p>
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <h3 class="font-semibold text-gray-800 mb-4 text-sm"><i class="fas fa-id-card ml-2 text-blue-500"></i>معلومات التواصل</h3>
+                <div class="space-y-3">
+                    ${[
+                        { label:'رقم الجوال',        value:p.phone, icon:'fa-phone'   },
+                        { label:'البريد الإلكتروني', value:p.email||'—', icon:'fa-envelope'},
+                    ].map(i=>`
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fas ${i.icon} text-gray-500 text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400">${i.label}</p>
+                            <p class="text-sm font-medium text-gray-700">${i.value}</p>
+                        </div>
+                    </div>`).join('')}
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <h3 class="font-semibold text-gray-800 mb-4 text-sm"><i class="fas fa-users ml-2 text-green-500"></i>الأبناء (${p.children.length})</h3>
+                <div class="space-y-2">
+                    ${p.children.map(c=>`
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                        <div class="w-8 h-8 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center font-bold text-sm">${c.charAt(0)}</div>
+                        <p class="text-sm font-medium text-gray-800">${c}</p>
+                    </div>`).join('')}
+                </div>
+            </div>
+        </div>`;
+    }
+
+    function openForm()   { editId = null; showForm = true;  render(); }
+    function closeForm()  { editId = null; showForm = false; render(); }
+    function openEdit(id) { editId = id;   showForm = true;  render(); }
+    function viewParent(id){ viewId = id; render(); }
+
+    function getCheckedChildren() {
+        return [...document.querySelectorAll('.child-check:checked')].map(c=>c.value);
+    }
+
+    function filterParents() {
+        const q = document.getElementById('search-input')?.value.toLowerCase() || '';
+        filtered = parents.filter(p =>
+            !q || p.name.toLowerCase().includes(q) || p.phone.includes(q)
+        );
+        render();
+    }
+
+    function addParent() {
+        const name  = document.getElementById('p-name').value.trim();
+        const user  = document.getElementById('p-user').value.trim();
+        const phone = document.getElementById('p-phone').value.trim();
+        const email = document.getElementById('p-email').value.trim();
+        if(!name || !user || !phone) { showFlash('الاسم واسم المستخدم والجوال مطلوبة.','error'); return; }
+        parents.push({ id: Date.now(), name, username:user, phone, email, children: getCheckedChildren(), status:'active' });
+        filtered = [...parents];
+        closeForm();
+        showFlash('تم إضافة ولي الأمر بنجاح.');
+    }
+
+    function saveEdit() {
+        const p = parents.find(x=>x.id===editId);
+        p.name     = document.getElementById('p-name').value.trim();
+        p.username = document.getElementById('p-user').value.trim();
+        p.phone    = document.getElementById('p-phone').value.trim();
+        p.email    = document.getElementById('p-email').value.trim();
+        p.children = getCheckedChildren();
+        filtered = [...parents];
+        closeForm();
+        showFlash('تم حفظ التعديل بنجاح.');
+    }
+
+    function deleteParent(id) {
+        if(!confirm('حذف ولي الأمر نهائياً؟')) return;
+        parents = parents.filter(p=>p.id!==id);
+        filtered = [...parents];
+        render();
+        showFlash('تم حذف ولي الأمر.');
+    }
+
+    render();
+}
+</script>
+</body>
+</html>

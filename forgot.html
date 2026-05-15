@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استعادة كلمة المرور - School System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #402568 0%, #935ee1 60%, #a871ec 100%); }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+
+<div class="w-full max-w-md">
+    <div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
+
+        <div class="bg-gradient-to-l from-purple-600 to-purple-800 px-8 py-8 text-center">
+            <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-key text-white text-3xl"></i>
+            </div>
+            <h1 class="text-white text-2xl font-bold">استعادة كلمة المرور</h1>
+            <p class="text-purple-200 text-sm mt-1">School System</p>
+        </div>
+
+        <div class="px-8 py-8">
+
+            <!-- Step 1: Enter username -->
+            <div id="step1">
+                <p class="text-gray-500 text-sm mb-6 text-center">أدخل اسم المستخدم وسنعرض لك سؤال الأمان</p>
+                <div id="step1-error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="step1-error-msg"></span>
+                </div>
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">اسم المستخدم</label>
+                    <div class="relative">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-user"></i></span>
+                        <input type="text" id="forgot-username"
+                               class="w-full pr-10 pl-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm"
+                               placeholder="أدخل اسم المستخدم">
+                    </div>
+                </div>
+                <button onclick="checkUsername()"
+                        class="w-full bg-gradient-to-l from-purple-600 to-purple-800 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity">
+                    التالي <i class="fas fa-arrow-left mr-2"></i>
+                </button>
+            </div>
+
+            <!-- Step 2: Security question -->
+            <div id="step2" class="hidden">
+                <p class="text-gray-500 text-sm mb-6 text-center">أجب على سؤال الأمان</p>
+                <div id="step2-error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="step2-error-msg"></span>
+                </div>
+                <div class="mb-5 p-4 bg-purple-50 rounded-xl">
+                    <p class="text-xs text-gray-500 mb-1">سؤال الأمان</p>
+                    <p class="font-medium text-gray-800" id="security-question"></p>
+                </div>
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">الإجابة</label>
+                    <input type="text" id="security-answer"
+                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm"
+                           placeholder="أدخل إجابتك">
+                </div>
+                <button onclick="checkAnswer()"
+                        class="w-full bg-gradient-to-l from-purple-600 to-purple-800 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity">
+                    التحقق <i class="fas fa-check mr-2"></i>
+                </button>
+            </div>
+
+            <!-- Step 3: New password -->
+            <div id="step3" class="hidden">
+                <p class="text-gray-500 text-sm mb-6 text-center">أدخل كلمة المرور الجديدة</p>
+                <div id="step3-error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="step3-error-msg"></span>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">كلمة المرور الجديدة</label>
+                    <div class="relative">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-lock"></i></span>
+                        <input type="password" id="new-pass"
+                               class="w-full pr-10 pl-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm"
+                               placeholder="كلمة المرور الجديدة">
+                    </div>
+                </div>
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">تأكيد كلمة المرور</label>
+                    <div class="relative">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-lock"></i></span>
+                        <input type="password" id="confirm-pass"
+                               class="w-full pr-10 pl-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm"
+                               placeholder="أعد كتابة كلمة المرور">
+                    </div>
+                </div>
+                <button onclick="resetPassword()"
+                        class="w-full bg-gradient-to-l from-purple-600 to-purple-800 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity">
+                    <i class="fas fa-save ml-2"></i> حفظ كلمة المرور
+                </button>
+            </div>
+
+            <!-- Step 4: Success -->
+            <div id="step4" class="hidden text-center py-4">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check-circle text-green-600 text-3xl"></i>
+                </div>
+                <h3 class="font-bold text-gray-800 text-lg mb-2">تم تغيير كلمة المرور</h3>
+                <p class="text-gray-500 text-sm mb-6">يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة</p>
+                <a href="login.html"
+                   class="inline-flex items-center gap-2 bg-gradient-to-l from-purple-600 to-purple-800 text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity">
+                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                </a>
+            </div>
+
+            <div class="text-center mt-5">
+                <a href="login.html" class="text-sm text-gray-400 hover:text-purple-600 transition-colors">
+                    <i class="fas fa-arrow-right ml-1"></i> العودة لتسجيل الدخول
+                </a>
+            </div>
+        </div>
+    </div>
+    <p class="text-center text-purple-200 text-xs mt-6">School System &copy; 2025</p>
+</div>
+
+<script>
+    const USERS = {
+        'admin':   { pass: 'Admin@1234',  question: 'ما اسم مدرستك الابتدائية؟',   answer: 'النور'    },
+        'teacher': { pass: 'Teacher@123', question: 'ما اسم والدتك قبل الزواج؟',   answer: 'العمري'   },
+        'student': { pass: 'Student@123', question: 'ما هو لون كتابك المفضل؟',     answer: 'أزرق'     },
+        'parent':  { pass: 'Parent@123',  question: 'ما اسم مدينة ميلادك؟',        answer: 'الرياض'   },
+    };
+
+    let currentUser = '';
+
+    function showError(stepId, msg) {
+        const el = document.getElementById(stepId + '-error');
+        document.getElementById(stepId + '-error-msg').textContent = msg;
+        el.classList.remove('hidden');
+    }
+    function hideError(stepId) {
+        document.getElementById(stepId + '-error').classList.add('hidden');
+    }
+
+    function checkUsername() {
+        hideError('step1');
+        const u = document.getElementById('forgot-username').value.trim();
+        if (!u) { showError('step1', 'يرجى إدخال اسم المستخدم.'); return; }
+        if (!USERS[u]) { showError('step1', 'اسم المستخدم غير موجود.'); return; }
+        currentUser = u;
+        document.getElementById('security-question').textContent = USERS[u].question;
+        document.getElementById('step1').classList.add('hidden');
+        document.getElementById('step2').classList.remove('hidden');
+    }
+
+    function checkAnswer() {
+        hideError('step2');
+        const ans = document.getElementById('security-answer').value.trim();
+        if (!ans) { showError('step2', 'يرجى إدخال الإجابة.'); return; }
+        if (ans !== USERS[currentUser].answer) { showError('step2', 'الإجابة غير صحيحة.'); return; }
+        document.getElementById('step2').classList.add('hidden');
+        document.getElementById('step3').classList.remove('hidden');
+    }
+
+    function resetPassword() {
+        hideError('step3');
+        const p1 = document.getElementById('new-pass').value;
+        const p2 = document.getElementById('confirm-pass').value;
+        if (p1.length < 6) { showError('step3', 'كلمة المرور يجب أن تكون 6 أحرف على الأقل.'); return; }
+        if (p1 !== p2) { showError('step3', 'كلمتا المرور غير متطابقتين.'); return; }
+        USERS[currentUser].pass = p1;
+        document.getElementById('step3').classList.add('hidden');
+        document.getElementById('step4').classList.remove('hidden');
+    }
+</script>
+</body>
+</html>

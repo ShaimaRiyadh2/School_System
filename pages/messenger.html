@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الرسائل - School System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#A88EDB'}}}}}</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+<body class="bg-gray-100">
+<div id="app-layout"></div>
+<script src="../js/layout.js"></script>
+<script>
+const auth = getAuth();
+if(auth){ renderLayout('messenger.html');
+document.getElementById('breadcrumb-slot').innerHTML=`<span class="text-gray-400"><i class="fas fa-home ml-1"></i></span><span class="mx-2 text-gray-300">/</span><span class="font-medium text-gray-700">الرسائل</span>`;
+
+const messages = [
+    { id:1, from:'مدير النظام',   subject:'اجتماع أولياء الأمور',    body:'يسعدنا دعوتكم لحضور اجتماع أولياء الأمور يوم الأحد القادم الساعة 6 مساءً في قاعة الاجتماعات الكبرى.', time:'منذ 10 د', pinned:true,  target:'الجميع' },
+    { id:2, from:'أ. أحمد المعلم', subject:'واجب الرياضيات',          body:'يرجى من جميع طلاب الصف العاشر حل تمارين الفصل الثالث صفحة 45-50 وتسليمها غداً.', time:'منذ 1 س',  pinned:false, target:'الفصل 10-أ' },
+    { id:3, from:'الإدارة',        subject:'إعلان عن إجازة رسمية',    body:'تعلن إدارة المدرسة عن إجازة رسمية يوم الخميس القادم بمناسبة اليوم الوطني.', time:'منذ 3 س',  pinned:true,  target:'الجميع' },
+    { id:4, from:'أ. سارة المعلمة','subject':'نتائج الاختبار الأسبوعي', body:'تم رفع نتائج الاختبار الأسبوعي للغة العربية. يمكن الاطلاع عليها من خلال سجل الدرجات.', time:'أمس',      pinned:false, target:'الفصل 11-ب' },
+];
+
+let view = 'list';
+let selectedMsg = null;
+let showCompose = false;
+
+function render() {
+    const content = document.getElementById('page-content');
+    if (showCompose) {
+        content.innerHTML = `
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-pen ml-2 text-purple-500"></i>رسالة جديدة</h2>
+            <button onclick="showCompose=false;render()" class="border border-gray-200 text-gray-600 px-4 py-2 rounded-xl hover:bg-gray-50 text-sm">
+                <i class="fas fa-arrow-right ml-1"></i> رجوع
+            </button>
+        </div>
+        <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-100">
+                <h3 class="font-bold text-gray-800">إنشاء رسالة جديدة</h3>
+            </div>
+            <div class="px-6 py-6 space-y-5">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">الموضوع *</label>
+                    <input id="msg-subject" type="text" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" placeholder="موضوع الرسالة">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">إرسال إلى</label>
+                        <select id="msg-target-type" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
+                            <option value="All">الجميع</option>
+                            <option value="FormGroup">فصل محدد</option>
+                            <option value="Individual">فرد محدد</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">تثبيت</label>
+                        <label class="flex items-center gap-2 mt-2 cursor-pointer">
+                            <input type="checkbox" id="msg-pinned" class="rounded">
+                            <span class="text-sm text-gray-600">تثبيت على الصفحة الرئيسية</span>
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">محتوى الرسالة *</label>
+                    <textarea id="msg-body" rows="6" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" placeholder="اكتب رسالتك هنا..."></textarea>
+                </div>
+                <div class="flex gap-3 pt-4 border-t border-gray-100">
+                    <button onclick="sendMessage()" class="flex items-center gap-2 bg-purple-600 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-purple-700">
+                        <i class="fas fa-paper-plane"></i> إرسال
+                    </button>
+                    <button onclick="showCompose=false;render()" class="px-6 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50">إلغاء</button>
+                </div>
+            </div>
+        </div>`;
+        return;
+    }
+
+    if (selectedMsg) {
+        const m = messages.find(x=>x.id===selectedMsg);
+        content.innerHTML = `
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-envelope-open ml-2 text-purple-500"></i>عرض الرسالة</h2>
+            <button onclick="selectedMsg=null;render()" class="border border-gray-200 text-gray-600 px-4 py-2 rounded-xl hover:bg-gray-50 text-sm">
+                <i class="fas fa-arrow-right ml-1"></i> رجوع
+            </button>
+        </div>
+        <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-100">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <h2 class="font-bold text-gray-800 text-lg">${m.subject}</h2>
+                        <p class="text-sm text-gray-400 mt-1">من: ${m.from} — ${m.time}</p>
+                        <span class="inline-block mt-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                            <i class="fas fa-users ml-1"></i>${m.target}
+                        </span>
+                    </div>
+                    ${m.pinned?'<span class="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full flex items-center gap-1"><i class="fas fa-thumbtack"></i> مثبت</span>':''}
+                </div>
+            </div>
+            <div class="px-6 py-6">
+                <p class="text-gray-700 leading-relaxed">${m.body}</p>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-100 bg-gray-50">
+                <button onclick="selectedMsg=null;render()" class="flex items-center gap-2 text-sm text-gray-600 hover:text-purple-600">
+                    <i class="fas fa-arrow-right"></i> العودة للرسائل
+                </button>
+            </div>
+        </div>`;
+        return;
+    }
+
+    content.innerHTML = `
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-envelope ml-2 text-purple-500"></i>الرسائل</h2>
+        <button onclick="showCompose=true;render()" class="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-xl hover:bg-purple-700 text-sm font-medium">
+            <i class="fas fa-pen"></i> رسالة جديدة
+        </button>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="divide-y divide-gray-50">
+            ${messages.map(m=>`
+            <div onclick="selectedMsg=${m.id};render()" class="flex items-start gap-4 px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors">
+                <div class="w-10 h-10 bg-purple-100 text-purple-700 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm">
+                    ${m.from.charAt(0)}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-2">
+                        <p class="font-semibold text-gray-800 text-sm truncate">${m.subject}</p>
+                        <span class="text-xs text-gray-400 flex-shrink-0">${m.time}</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-0.5">من: ${m.from} — ${m.target}</p>
+                    <p class="text-xs text-gray-400 mt-1 truncate">${m.body.substring(0,80)}...</p>
+                </div>
+                ${m.pinned?'<span class="flex-shrink-0 text-yellow-500"><i class="fas fa-thumbtack"></i></span>':''}
+            </div>`).join('')}
+        </div>
+    </div>`;
+}
+
+function sendMessage() {
+    const subject = document.getElementById('msg-subject').value.trim();
+    const body = document.getElementById('msg-body').value.trim();
+    if (!subject || !body) { showFlash('الموضوع والمحتوى مطلوبان.', 'error'); return; }
+    messages.unshift({ id: messages.length+1, from: auth.full_name, subject, body, time:'الآن', pinned: document.getElementById('msg-pinned').checked, target:'الجميع' });
+    showCompose = false;
+    render();
+    showFlash('تم إرسال الرسالة بنجاح.');
+}
+
+render();
+}
+</script>
+</body>
+</html>

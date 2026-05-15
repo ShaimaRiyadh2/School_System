@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الإشعارات - School System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#A88EDB'}}}}}</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+<body class="bg-gray-100">
+<div id="app-layout"></div>
+<script src="../js/layout.js"></script>
+<script>
+const auth = getAuth();
+if(auth){ renderLayout('notifications.html');
+document.getElementById('breadcrumb-slot').innerHTML=`<span class="text-gray-400"><i class="fas fa-home ml-1"></i></span><span class="mx-2 text-gray-300">/</span><span class="font-medium text-gray-700">الإشعارات</span>`;
+
+let notifications = [
+    { id:1, title:'درجة جديدة في الرياضيات',    text:'تم إدخال درجتك في اختبار الفصل الأول.',  time:'منذ 5 د',  status:'New'  },
+    { id:2, title:'رسالة جديدة من الإدارة',      text:'اجتماع أولياء الأمور يوم الأحد.',         time:'منذ 1 س',  status:'New'  },
+    { id:3, title:'تم تسجيل الحضور',             text:'تم تسجيل حضورك اليوم الساعة 8:00 ص.',    time:'اليوم',    status:'Read' },
+    { id:4, title:'واجب جديد في اللغة العربية',  text:'يرجى تسليم الواجب قبل يوم الأربعاء.',    time:'أمس',      status:'Read' },
+];
+
+function render() {
+    document.getElementById('page-content').innerHTML = `
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-bell ml-2 text-purple-500"></i>الإشعارات</h2>
+        <button onclick="markAllRead()" class="text-sm text-gray-500 hover:text-purple-600 border border-gray-200 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors">
+            <i class="fas fa-check-double ml-1"></i>تحديد الكل كمقروء
+        </button>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="divide-y divide-gray-50">
+            ${notifications.map(n=>`
+            <div class="px-6 py-4 flex items-start gap-4 ${n.status==='New'?'bg-purple-50':''}">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
+                            ${n.status==='New'?'bg-purple-600 text-white':'bg-gray-100 text-gray-400'}">
+                    <i class="fas fa-bell text-sm"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="font-semibold text-gray-800 text-sm">${n.title}</p>
+                    <p class="text-xs text-gray-500 mt-0.5">${n.text}</p>
+                    <p class="text-xs text-gray-400 mt-1">${n.time}</p>
+                </div>
+                ${n.status==='New'?`
+                <button onclick="markRead(${n.id})" class="text-xs text-gray-400 hover:text-gray-600 flex-shrink-0">
+                    <i class="fas fa-check"></i>
+                </button>`:''}
+            </div>`).join('')}
+        </div>
+    </div>`;
+}
+
+function markRead(id) {
+    const n = notifications.find(x=>x.id===id);
+    if(n) { n.status='Read'; render(); }
+}
+function markAllRead() {
+    notifications.forEach(n=>n.status='Read');
+    render();
+    showFlash('تم تحديد كل الإشعارات كمقروءة.');
+}
+
+render();
+}
+</script>
+</body>
+</html>

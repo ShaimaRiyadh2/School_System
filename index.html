@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>School System - نظام إدارة المدرسة | منصة متكاملة</title>
+    <!-- Tailwind CSS + Alpine.js + Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* Custom config + smooth scroll & utilities */
+        body {
+            font-family: 'Segoe UI', system-ui, Tahoma, 'Helvetica Neue', sans-serif;
+            scroll-behavior: smooth;
+        }
+        /* Gradient text utility for stats */
+        .stat-number {
+            background: linear-gradient(135deg, #A88EDB, #7c5cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        /* smooth card hover effect */
+        .feature-card {
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 25px 35px -12px rgba(128, 90, 213, 0.25);
+            border-color: #e9defa;
+        }
+        [x-cloak] { display: none !important; }
+        /* custom focus ring for accessibility */
+        a:focus-visible, button:focus-visible {
+            outline: 2px solid #a88edb;
+            outline-offset: 2px;
+            border-radius: 0.5rem;
+        }
+        /* custom hero gradient fallback */
+        .hero-bg {
+            background: linear-gradient(135deg, #3b1e60 0%, #7c3aed 70%, #a67cff 100%);
+        }
+    </style>
+    <script>
+        // tailwind config override (colors)
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { DEFAULT: '#A88EDB', dark: '#7c5cbf', light: '#c4aee8' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white text-gray-800 antialiased" x-data="{ mobileMenu: false }">
+
+    <!-- ============================================= -->
+    <!-- STICKY NAVBAR with backdrop & accessibility -->
+    <!-- ============================================= -->
+    <nav class="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-sm shadow-md transition-all duration-200">
+        <div class="max-w-6xl mx-auto px-5 md:px-6 py-3 md:py-4 flex items-center justify-between">
+            <!-- Logo + brand -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-md"
+                     style="background: linear-gradient(135deg, #935ee1, #402568)">
+                    <i class="fas fa-graduation-cap text-white text-lg"></i>
+                </div>
+                <span class="text-xl font-extrabold bg-gradient-to-l from-purple-800 to-purple-600 bg-clip-text text-transparent">School System</span>
+            </div>
+
+            <!-- Desktop navigation -->
+            <div class="hidden md:flex items-center gap-8">
+                <a href="#features" class="text-sm font-medium text-gray-700 hover:text-purple-700 transition-colors relative after:absolute after:bottom-0 after:right-0 after:w-0 after:h-0.5 after:bg-purple-500 after:transition-all hover:after:w-full after:duration-300 pb-0.5 relative">المميزات</a>
+                <a href="#roles" class="text-sm font-medium text-gray-700 hover:text-purple-700 transition-colors relative after:absolute after:bottom-0 after:right-0 after:w-0 after:h-0.5 after:bg-purple-500 after:transition-all hover:after:w-full">من يستخدمه؟</a>
+                <a href="#stats" class="text-sm font-medium text-gray-700 hover:text-purple-700 transition-colors relative after:absolute after:bottom-0 after:right-0 after:w-0 after:h-0.5 after:bg-purple-500 after:transition-all hover:after:w-full">إحصائيات</a>
+                <a href="login.html" 
+                   class="flex items-center gap-2 bg-gradient-to-l from-purple-700 to-purple-500 text-white px-5 py-2.5 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all font-semibold text-sm shadow-md">
+                    <i class="fas fa-sign-in-alt"></i>
+                    تسجيل الدخول
+                </a>
+            </div>
+
+            <!-- Mobile hamburger -->
+            <button @click="mobileMenu = !mobileMenu" class="md:hidden text-gray-700 focus:outline-none p-2 rounded-lg hover:bg-gray-100" aria-label="القائمة">
+                <i :class="mobileMenu ? 'fa-times' : 'fa-bars'" class="fas text-xl transition-transform duration-200"></i>
+            </button>
+        </div>
+
+        <!-- Mobile dropdown menu -->
+        <div x-show="mobileMenu" x-cloak x-transition.duration.200ms class="md:hidden bg-white border-t border-gray-100 shadow-lg px-5 py-4 space-y-3">
+            <a href="#features" @click="mobileMenu=false" class="block text-gray-700 py-2 text-base font-medium hover:text-purple-600 transition">المميزات</a>
+            <a href="#roles" @click="mobileMenu=false" class="block text-gray-700 py-2 text-base font-medium hover:text-purple-600 transition">من يستخدمه؟</a>
+            <a href="#stats" @click="mobileMenu=false" class="block text-gray-700 py-2 text-base font-medium hover:text-purple-600 transition">إحصائيات</a>
+            <a href="login.html" @click="mobileMenu=false" class="flex items-center justify-center gap-2 bg-gradient-to-l from-purple-700 to-purple-500 text-white px-4 py-2.5 rounded-xl font-bold text-sm mt-2">
+                <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+            </a>
+        </div>
+    </nav>
+
+    <!-- ============================================= -->
+    <!-- HERO SECTION with gradient & interactive preview -->
+    <!-- ============================================= -->
+    <main>
+        <section class="hero-bg min-h-screen flex items-center pt-20 md:pt-24 relative overflow-hidden">
+            <!-- decorative blur circles -->
+            <div class="absolute top-20 left-10 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+            <div class="absolute bottom-10 right-5 w-80 h-80 bg-indigo-500 rounded-full filter blur-3xl opacity-20"></div>
+            
+            <div class="max-w-6xl mx-auto px-5 md:px-6 py-12 md:py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+                <!-- Hero text -->
+                <div class="text-white">
+                    <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm mb-6 border border-white/30">
+                        <i class="fas fa-star text-yellow-300 text-xs"></i>
+                        <span class="font-medium">نظام إدارة مدرسي متكامل 4.0</span>
+                    </div>
+                    <h1 class="text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight mb-5 tracking-tight">
+                        إدارة مدرستك
+                        <span class="block text-transparent bg-clip-text bg-gradient-to-l from-yellow-200 to-amber-300">بكل سهولة واحترافية</span>
+                    </h1>
+                    <p class="text-purple-100 text-lg leading-relaxed mb-8 opacity-95 max-w-lg">
+                        منصة شاملة تربط المعلمين والطلاب وأولياء الأمور والإدارة في مكان واحد.
+                        من الحضور إلى الدرجات، من الرسائل إلى التقارير — كل شيء في متناول يدك.
+                    </p>
+                    <div class="flex flex-wrap gap-5">
+                        <a href="login.html" class="flex items-center gap-2 bg-white text-purple-700 px-7 py-3.5 rounded-xl font-bold hover:bg-purple-50 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5">
+                            <i class="fas fa-sign-in-alt"></i> ابدأ الآن
+                        </a>
+                        <a href="#features" class="flex items-center gap-2 border-2 border-white/60 text-white px-6 py-3.5 rounded-xl font-medium hover:bg-white/10 transition duration-300 backdrop-blur-sm">
+                            <i class="fas fa-play-circle"></i> اكتشف المميزات
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Dashboard preview card (modern glassmorphism) -->
+                <div class="hidden lg:block relative">
+                    <div class="bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/30 shadow-2xl">
+                        <div class="flex items-center gap-3 mb-5">
+                            <div class="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-tachometer-alt text-white text-sm"></i>
+                            </div>
+                            <span class="text-white font-bold tracking-wide">لوحة القيادة التفاعلية</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mb-5">
+                            <!-- dynamic stat boxes using inline generated content but fully static -->
+                            <div class="bg-white/15 rounded-2xl p-4 flex items-center gap-3 backdrop-blur-sm">
+                                <div class="w-9 h-9 bg-blue-400/80 rounded-xl flex items-center justify-center"><i class="fas fa-user-graduate text-white text-sm"></i></div>
+                                <div><p class="text-white font-bold text-xl leading-none">٢٤٨</p><p class="text-purple-200 text-xs">طالب</p></div>
+                            </div>
+                            <div class="bg-white/15 rounded-2xl p-4 flex items-center gap-3">
+                                <div class="w-9 h-9 bg-green-400/80 rounded-xl flex items-center justify-center"><i class="fas fa-chalkboard-teacher text-white text-sm"></i></div>
+                                <div><p class="text-white font-bold text-xl leading-none">٣٢</p><p class="text-purple-200 text-xs">معلم</p></div>
+                            </div>
+                            <div class="bg-white/15 rounded-2xl p-4 flex items-center gap-3">
+                                <div class="w-9 h-9 bg-orange-400/80 rounded-xl flex items-center justify-center"><i class="fas fa-door-open text-white text-sm"></i></div>
+                                <div><p class="text-white font-bold text-xl leading-none">١٨</p><p class="text-purple-200 text-xs">فصل</p></div>
+                            </div>
+                            <div class="bg-white/15 rounded-2xl p-4 flex items-center gap-3">
+                                <div class="w-9 h-9 bg-pink-400/80 rounded-xl flex items-center justify-center"><i class="fas fa-calendar-check text-white text-sm"></i></div>
+                                <div><p class="text-white font-bold text-xl leading-none">٩٦٪</p><p class="text-purple-200 text-xs">حضور</p></div>
+                            </div>
+                        </div>
+                        <div class="bg-white/10 rounded-2xl p-4">
+                            <p class="text-purple-200 text-xs mb-3 flex items-center gap-1"><i class="fas fa-chart-line"></i> نسبة الحضور الأسبوعية</p>
+                            <div class="flex items-end gap-1.5 h-16">
+                                <div class="flex-1 bg-white/40 rounded-t-md transition-all" style="height:70%"></div>
+                                <div class="flex-1 bg-white/40 rounded-t-md" style="height:85%"></div>
+                                <div class="flex-1 bg-white/40 rounded-t-md" style="height:60%"></div>
+                                <div class="flex-1 bg-white/40 rounded-t-md" style="height:95%"></div>
+                                <div class="flex-1 bg-white/40 rounded-t-md" style="height:88%"></div>
+                                <div class="flex-1 bg-white/40 rounded-t-md" style="height:75%"></div>
+                                <div class="flex-1 bg-white/40 rounded-t-md" style="height:92%"></div>
+                            </div>
+                            <div class="flex justify-between mt-2 text-purple-200 text-[11px]">
+                                <span>أح</span><span>إث</span><span>ثل</span><span>أر</span><span>خم</span><span>جم</span><span>سب</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- floating notification cards -->
+                    <div class="absolute -top-5 -left-6 bg-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-3 animate-bounce-subtle transition-all">
+                        <div class="w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center"><i class="fas fa-check-circle text-green-600"></i></div>
+                        <div><p class="text-xs font-bold text-gray-800">تم تسجيل الحضور</p><p class="text-xs text-gray-500">الفصل 10-أ</p></div>
+                    </div>
+                    <div class="absolute -bottom-4 -right-4 bg-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-3">
+                        <div class="w-8 h-8 bg-purple-100 rounded-xl flex items-center justify-center"><i class="fas fa-bell text-purple-600"></i></div>
+                        <div><p class="text-xs font-bold text-gray-800">إشعار جديد</p><p class="text-xs text-gray-500">درجة جديدة في الرياضيات</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================= -->
+        <!-- STATS SECTION - clean counters -->
+        <!-- ============================================= -->
+        <section id="stats" class="py-16 bg-gradient-to-b from-gray-50 to-white">
+            <div class="max-w-6xl mx-auto px-5 md:px-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                    <div class="p-4 rounded-2xl bg-white shadow-sm border border-gray-100 backdrop-blur-sm">
+                        <i class="fas fa-puzzle-piece text-3xl text-purple-500 mb-3 block"></i>
+                        <p class="text-4xl font-black stat-number mb-1">6</p>
+                        <p class="text-gray-500 text-sm font-medium">وحدات مبنية</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-white shadow-sm border border-gray-100">
+                        <i class="fas fa-users text-3xl text-purple-500 mb-3 block"></i>
+                        <p class="text-4xl font-black stat-number mb-1">4</p>
+                        <p class="text-gray-500 text-sm font-medium">أنواع مستخدمين</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-white shadow-sm border border-gray-100">
+                        <i class="fas fa-language text-3xl text-purple-500 mb-3 block"></i>
+                        <p class="text-4xl font-black stat-number mb-1">100%</p>
+                        <p class="text-gray-500 text-sm font-medium">واجهة عربية</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-white shadow-sm border border-gray-100">
+                        <i class="fas fa-expand-arrows-alt text-3xl text-purple-500 mb-3 block"></i>
+                        <p class="text-4xl font-black stat-number mb-1">∞</p>
+                        <p class="text-gray-500 text-sm font-medium">قابل للتوسع</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================= -->
+        <!-- FEATURES SECTION - comprehensive grid -->
+        <!-- ============================================= -->
+        <section id="features" class="py-20 bg-white">
+            <div class="max-w-6xl mx-auto px-5 md:px-6">
+                <div class="text-center mb-14">
+                    <span class="text-purple-600 font-bold text-sm uppercase tracking-wider border-r-4 border-purple-500 pr-3">المزايا الأساسية</span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-gray-800 mt-4">كل ما تحتاجه في مكان واحد</h2>
+                    <p class="text-gray-500 mt-4 max-w-2xl mx-auto">نظام متكامل يغطي جميع احتياجات المدرسة من الإدارة اليومية حتى التقارير الشاملة</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
+                    <!-- Feature 1 -->
+                    <div class="feature-card bg-white border border-gray-100 rounded-2xl p-6 shadow-md hover:shadow-xl">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-5"><i class="fas fa-calendar-check text-xl"></i></div>
+                        <h3 class="font-bold text-gray-800 text-lg mb-2">الحضور والغياب</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed">تسجيل الحضور بالفصل مع تقارير يومية وأسبوعية وإشعارات تلقائية لأولياء الأمور.</p>
+                    </div>
+                    <div class="feature-card bg-white border border-gray-100 rounded-2xl p-6 shadow-md">
+                        <div class="w-12 h-12 bg-yellow-50 text-yellow-600 rounded-xl flex items-center justify-center mb-5"><i class="fas fa-star text-xl"></i></div>
+                        <h3 class="font-bold text-gray-800 mb-2">سجل الدرجات</h3>
+                        <p class="text-gray-500 text-sm">إدخال الدرجات والجهد لكل طالب مع تحذيرات للدرجات المنخفضة وتقارير الأداء الفصلي.</p>
+                    </div>
+                    <div class="feature-card bg-white border border-gray-100 rounded-2xl p-6 shadow-md">
+                        <div class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center mb-5"><i class="fas fa-book-open text-xl"></i></div>
+                        <h3 class="font-bold text-gray-800 mb-2">مخطط الدروس</h3>
+                        <p class="text-gray-500 text-sm">تخطيط الدروس اليومية وإضافة الواجبات مع مواعيد التسليم وتنبيهات ذكية.</p>
+                    </div>
+                    <div class="feature-card bg-white border border-gray-100 rounded-2xl p-6 shadow-md">
+                        <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-5"><i class="fas fa-envelope text-xl"></i></div>
+                        <h3 class="font-bold text-gray-800 mb-2">نظام الرسائل</h3>
+                        <p class="text-gray-500 text-sm">إرسال رسائل للمجموعات أو الأفراد مع دعم الرسائل المثبتة وإمكانية المرفقات.</p>
+                    </div>
+                    <div class="feature-card bg-white border border-gray-100 rounded-2xl p-6 shadow-md">
+                        <div class="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center mb-5"><i class="fas fa-users text-xl"></i></div>
+                        <h3 class="font-bold text-gray-800 mb-2">إدارة الطلاب</h3>
+                        <p class="text-gray-500 text-sm">ملفات شاملة لكل طالب تشمل الحضور والدرجات والسلوك والتواصل مع العائلة.</p>
+                    </div>
+                    <div class="feature-card bg-white border border-gray-100 rounded-2xl p-6 shadow-md">
+                        <div class="w-12 h-12 bg-gray-100 text-gray-700 rounded-xl flex items-center justify-center mb-5"><i class="fas fa-shield-alt text-xl"></i></div>
+                        <h3 class="font-bold text-gray-800 mb-2">أمان متكامل</h3>
+                        <p class="text-gray-500 text-sm">حماية CSRF، صلاحيات دقيقة لكل مستخدم، وتسجيل كامل العمليات وجلسات آمنة.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================= -->
+        <!-- ROLES SECTION (4 personas) -->
+        <!-- ============================================= -->
+        <section id="roles" class="py-20 bg-gray-50">
+            <div class="max-w-6xl mx-auto px-5 md:px-6">
+                <div class="text-center mb-14">
+                    <span class="text-purple-600 font-semibold text-sm uppercase bg-purple-100 px-4 py-1.5 rounded-full">حل شامل</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mt-4">مصمم لكل فرد في المدرسة</h2>
+                    <p class="text-gray-500 max-w-xl mx-auto mt-2">واجهات مخصصة تتناسب مع احتياجات المدير، المعلم، الطالب وولي الأمر</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
+                    <!-- Admin role card -->
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden transition hover:-translate-y-1 duration-300">
+                        <div class="bg-gradient-to-br from-purple-600 to-purple-800 p-6 text-white text-center">
+                            <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-3"><i class="fas fa-user-shield text-2xl"></i></div>
+                            <h3 class="font-bold text-xl">المدير</h3>
+                            <p class="text-sm opacity-90">إشراف كامل على النظام</p>
+                        </div>
+                        <div class="p-5"><ul class="space-y-2.5"><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-purple-50 text-purple-700 rounded-full flex items-center justify-center text-[10px]"><i class="fas fa-check"></i></span>إحصائيات شاملة</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-purple-50 text-purple-700 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>إدارة المستخدمين</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-purple-50 text-purple-700 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>إعدادات النظام</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-purple-50 text-purple-700 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>سجل النشاطات</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-purple-50 text-purple-700 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>التقارير الكاملة</li></ul></div>
+                    </div>
+                    <!-- Teacher -->
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden transition hover:-translate-y-1">
+                        <div class="bg-gradient-to-br from-blue-600 to-blue-800 p-6 text-white text-center">
+                            <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-3"><i class="fas fa-chalkboard-teacher text-2xl"></i></div>
+                            <h3 class="font-bold text-xl">المعلم</h3>
+                            <p class="text-sm opacity-90">أدوات تدريس متكاملة</p>
+                        </div>
+                        <div class="p-5"><ul class="space-y-2.5"><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-blue-50 text-blue-700 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>تسجيل الحضور</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-blue-50 text-blue-700 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>إدخال الدرجات</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-blue-50 text-blue-700 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>تخطيط الدروس</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-blue-50 text-blue-700 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>إرسال الرسائل</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-blue-50 text-blue-700 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>متابعة الطلاب</li></ul></div>
+                    </div>
+                    <!-- Student -->
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden transition hover:-translate-y-1">
+                        <div class="bg-gradient-to-br from-green-600 to-green-800 p-6 text-white text-center">
+                            <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-3"><i class="fas fa-user-graduate text-2xl"></i></div>
+                            <h3 class="font-bold text-xl">الطالب</h3>
+                            <p class="text-sm opacity-90">متابعة التقدم الدراسي</p>
+                        </div>
+                        <div class="p-5"><ul class="space-y-2.5"><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-green-50 text-green-700 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>جدول الدروس</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-green-50 text-green-700 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>الواجبات والمواعيد</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-green-50 text-green-700 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>عرض الدرجات</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-green-50 text-green-700 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>الإشعارات</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-green-50 text-green-700 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>الرسائل</li></ul></div>
+                    </div>
+                    <!-- Parent -->
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden transition hover:-translate-y-1">
+                        <div class="bg-gradient-to-br from-orange-500 to-orange-700 p-6 text-white text-center">
+                            <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-3"><i class="fas fa-users text-2xl"></i></div>
+                            <h3 class="font-bold text-xl">ولي الأمر</h3>
+                            <p class="text-sm opacity-90">متابعة أبنائه بسهولة</p>
+                        </div>
+                        <div class="p-5"><ul class="space-y-2.5"><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>متابعة الحضور</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>عرض الدرجات</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>الواجبات القادمة</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>التواصل مع المعلمين</li><li class="flex gap-2 text-sm"><span class="w-5 h-5 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center"><i class="fas fa-check text-[10px]"></i></span>تقارير الأداء</li></ul></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================= -->
+        <!-- CALL TO ACTION SECTION -->
+        <!-- ============================================= -->
+        <section class="py-20 hero-bg relative overflow-hidden">
+            <div class="absolute inset-0 bg-white/5 backdrop-blur-[2px]"></div>
+            <div class="max-w-3xl mx-auto px-6 text-center relative z-10">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-4">جاهز للبدء؟</h2>
+                <p class="text-purple-100 text-lg md:text-xl mb-8">سجّل دخولك الآن وابدأ في إدارة مدرستك باحترافية وسلاسة</p>
+                <a href="login.html" class="inline-flex items-center gap-3 bg-white text-purple-700 px-8 py-4 rounded-2xl font-bold text-lg hover:shadow-2xl hover:bg-purple-50 transition-all duration-300 shadow-xl transform hover:scale-105">
+                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- ============================================= -->
+    <!-- FOOTER -->
+    <!-- ============================================= -->
+    <footer class="bg-gray-900 text-gray-400 py-10 border-t border-gray-800">
+        <div class="max-w-6xl mx-auto px-5 md:px-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg,#935ee1,#402568)">
+                        <i class="fas fa-graduation-cap text-white text-sm"></i>
+                    </div>
+                    <span class="text-white font-bold tracking-wide">School System</span>
+                </div>
+                <p class="text-sm text-gray-500">جميع الحقوق محفوظة &copy; 2025 | نظام إدارة تعليمي متطور</p>
+                <div class="flex items-center gap-6 text-sm">
+                    <a href="login.html" class="hover:text-purple-400 transition-colors">تسجيل الدخول</a>
+                    <a href="#features" class="hover:text-purple-400 transition-colors">المميزات</a>
+                    <a href="#roles" class="hover:text-purple-400 transition-colors">من يستخدمه؟</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- tiny script for hover animation cross-browser support (no external deps) -->
+    <script>
+        // ensure any external links are smooth; pure static interactive not required
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const targetId = this.getAttribute('href');
+                if(targetId === "#" || targetId === "") return;
+                const targetEl = document.querySelector(targetId);
+                if(targetEl) {
+                    e.preventDefault();
+                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقارير الحضور - School System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#A88EDB'}}}}}</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+<body class="bg-gray-100">
+<div id="app-layout"></div>
+<script src="../js/layout.js"></script>
+<script>
+const auth = getAuth();
+if (auth) {
+    renderLayout('attendance.html');
+    document.getElementById('breadcrumb-slot').innerHTML = `
+        <span class="text-gray-400"><i class="fas fa-home ml-1"></i></span>
+        <span class="mx-2 text-gray-300">/</span>
+        <a href="attendance.html" class="text-gray-500 hover:text-purple-600">الحضور</a>
+        <span class="mx-2 text-gray-300">/</span>
+        <span class="font-medium text-gray-700">التقارير</span>`;
+
+    const data = {
+        '10-أ': { present:22, absent:3, late:2, remote:1, total:28 },
+        '10-ب': { present:20, absent:4, late:1, remote:0, total:25 },
+        '11-أ': { present:25, absent:1, late:2, remote:1, total:29 },
+        '11-ب': { present:18, absent:5, late:3, remote:0, total:26 },
+        '12-أ': { present:24, absent:2, late:1, remote:1, total:28 },
+    };
+
+    const weekly = [
+        { day:'الأحد',    p:92, a:5, l:3 },
+        { day:'الاثنين',  p:88, a:7, l:5 },
+        { day:'الثلاثاء', p:95, a:3, l:2 },
+        { day:'الأربعاء', p:90, a:6, l:4 },
+        { day:'الخميس',   p:85, a:9, l:6 },
+    ];
+
+    const students = [
+        { name:'محمد أحمد العمري',    form:'10-أ', present:18, absent:1, late:1, pct:90 },
+        { name:'سارة خالد المنصور',   form:'10-ب', present:20, absent:0, late:0, pct:100 },
+        { name:'عبدالله فهد الزهراني',form:'11-أ', present:15, absent:4, late:1, pct:75 },
+        { name:'نورة سعد القحطاني',   form:'11-ب', present:19, absent:1, late:0, pct:95 },
+        { name:'فيصل محمد الدوسري',   form:'12-أ', present:12, absent:6, late:2, pct:60 },
+        { name:'ريم عبدالرحمن الشمري',form:'10-أ', present:20, absent:0, late:0, pct:100 },
+    ];
+
+    let filterForm = '';
+
+    function render() {
+        const filtered = filterForm ? students.filter(s => s.form === filterForm) : students;
+        const totalPresent = Object.values(data).reduce((a,b) => a + b.present, 0);
+        const totalStudents = Object.values(data).reduce((a,b) => a + b.total, 0);
+        const avgPct = Math.round(totalPresent / totalStudents * 100);
+
+        document.getElementById('page-content').innerHTML = `
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-chart-bar ml-2 text-purple-500"></i>تقارير الحضور</h2>
+            <div class="flex gap-2">
+                <button onclick="printReport()" class="flex items-center gap-2 border border-gray-200 text-gray-600 px-4 py-2 rounded-xl hover:bg-gray-50 text-sm">
+                    <i class="fas fa-print"></i> طباعة
+                </button>
+                <button onclick="exportCSV()" class="flex items-center gap-2 border border-gray-200 text-gray-600 px-4 py-2 rounded-xl hover:bg-gray-50 text-sm">
+                    <i class="fas fa-file-csv"></i> تصدير CSV
+                </button>
+                <a href="attendance.html" class="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-xl hover:bg-purple-700 text-sm">
+                    <i class="fas fa-arrow-right"></i> رجوع
+                </a>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            ${[
+                { label:'إجمالي الطلاب',  value: totalStudents, icon:'fa-users',         color:'blue'   },
+                { label:'حاضرون اليوم',   value: totalPresent,  icon:'fa-user-check',    color:'green'  },
+                { label:'غائبون اليوم',   value: totalStudents - totalPresent, icon:'fa-user-times', color:'red' },
+                { label:'نسبة الحضور',    value: avgPct + '%',  icon:'fa-percentage',    color:'purple' },
+            ].map(c => `
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center
+                    ${c.color==='blue'?'bg-blue-50 text-blue-600':c.color==='green'?'bg-green-50 text-green-600':c.color==='red'?'bg-red-50 text-red-600':'bg-purple-50 text-purple-600'}">
+                    <i class="fas ${c.icon} text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-gray-800">${c.value}</p>
+                    <p class="text-xs text-gray-500">${c.label}</p>
+                </div>
+            </div>`).join('')}
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Weekly Chart -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <h3 class="font-semibold text-gray-800 mb-4 text-sm"><i class="fas fa-chart-line ml-2 text-blue-500"></i>الحضور الأسبوعي</h3>
+                <div class="space-y-3">
+                    ${weekly.map(w => `
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-gray-500 w-16 text-right">${w.day}</span>
+                        <div class="flex-1 bg-gray-100 rounded-full h-5 overflow-hidden flex">
+                            <div class="bg-green-400 h-full transition-all" style="width:${w.p}%"></div>
+                            <div class="bg-orange-400 h-full transition-all" style="width:${w.l}%"></div>
+                            <div class="bg-red-400 h-full transition-all" style="width:${w.a}%"></div>
+                        </div>
+                        <span class="text-xs font-bold text-gray-700 w-10">${w.p}%</span>
+                    </div>`).join('')}
+                </div>
+                <div class="flex gap-4 mt-4 text-xs text-gray-500">
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-green-400 rounded-full inline-block"></span>حاضر</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-orange-400 rounded-full inline-block"></span>متأخر</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-red-400 rounded-full inline-block"></span>غائب</span>
+                </div>
+            </div>
+
+            <!-- By Class -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h3 class="font-semibold text-gray-800 text-sm"><i class="fas fa-door-open ml-2 text-green-500"></i>حضور الفصول</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500">الفصل</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500">حاضر</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500">غائب</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500">متأخر</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500">النسبة</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            ${Object.entries(data).map(([form, d]) => {
+                                const pct = Math.round(d.present / d.total * 100);
+                                return `
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3 font-medium text-gray-800">${form}</td>
+                                    <td class="px-4 py-3 text-center text-green-600 font-medium">${d.present}</td>
+                                    <td class="px-4 py-3 text-center text-red-500">${d.absent}</td>
+                                    <td class="px-4 py-3 text-center text-orange-500">${d.late}</td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="px-2 py-1 rounded-full text-xs font-bold
+                                            ${pct>=90?'bg-green-100 text-green-700':pct>=75?'bg-blue-100 text-blue-700':'bg-red-100 text-red-700'}">
+                                            ${pct}%
+                                        </span>
+                                    </td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Details -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
+                <h3 class="font-semibold text-gray-800 text-sm"><i class="fas fa-user-graduate ml-2 text-purple-500"></i>تفاصيل الطلاب</h3>
+                <select onchange="filterForm=this.value;render()" class="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
+                    <option value="">كل الفصول</option>
+                    ${['10-أ','10-ب','11-أ','11-ب','12-أ'].map(f=>`<option ${f===filterForm?'selected':''}>${f}</option>`).join('')}
+                </select>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">الطالب</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500">الفصل</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500">حاضر</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500">غائب</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500">متأخر</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500">النسبة</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        ${filtered.map(s => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-3 font-medium text-gray-800">${s.name}</td>
+                            <td class="px-6 py-3 text-center text-gray-500">${s.form}</td>
+                            <td class="px-6 py-3 text-center text-green-600 font-medium">${s.present}</td>
+                            <td class="px-6 py-3 text-center text-red-500">${s.absent}</td>
+                            <td class="px-6 py-3 text-center text-orange-500">${s.late}</td>
+                            <td class="px-6 py-3 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <div class="w-16 bg-gray-100 rounded-full h-2">
+                                        <div class="h-2 rounded-full ${s.pct>=90?'bg-green-400':s.pct>=75?'bg-blue-400':'bg-red-400'}"
+                                             style="width:${s.pct}%"></div>
+                                    </div>
+                                    <span class="text-xs font-bold text-gray-700">${s.pct}%</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-3 text-center">
+                                <span class="px-2 py-1 rounded-full text-xs font-medium
+                                    ${s.pct>=90?'bg-green-100 text-green-700':s.pct>=75?'bg-yellow-100 text-yellow-700':'bg-red-100 text-red-700'}">
+                                    ${s.pct>=90?'ممتاز':s.pct>=75?'جيد':'تحذير'}
+                                </span>
+                            </td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>`;
+    }
+
+    function printReport() { window.print(); }
+
+    function exportCSV() {
+        const rows = [['الطالب','الفصل','حاضر','غائب','متأخر','النسبة']];
+        students.forEach(s => rows.push([s.name, s.form, s.present, s.absent, s.late, s.pct + '%']));
+        const csv = rows.map(r => r.join(',')).join('\n');
+        const a = document.createElement('a');
+        a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+        a.download = 'attendance-report.csv';
+        a.click();
+        showFlash('تم تصدير التقرير بنجاح.');
+    }
+
+    render();
+}
+</script>
+</body>
+</html>

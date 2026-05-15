@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المراحل الدراسية - School System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#A88EDB'}}}}}</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+<body class="bg-gray-100">
+<div id="app-layout"></div>
+<script src="../js/layout.js"></script>
+<script>
+const auth = getAuth();
+if(auth){
+    if(auth.role_category !== 'Admin'){ window.location.href='dashboard.html'; }
+    renderLayout('stages.html');
+    document.getElementById('breadcrumb-slot').innerHTML=`
+        <span class="text-gray-400"><i class="fas fa-home ml-1"></i></span>
+        <span class="mx-2 text-gray-300">/</span>
+        <span class="font-medium text-gray-700">المراحل الدراسية</span>`;
+
+    let stages = [
+        { id:1, name:'الصف العاشر',       code:'G10', classes:2, students:53, minAge:15, maxAge:16, status:'active' },
+        { id:2, name:'الصف الحادي عشر',   code:'G11', classes:2, students:55, minAge:16, maxAge:17, status:'active' },
+        { id:3, name:'الصف الثاني عشر',   code:'G12', classes:1, students:28, minAge:17, maxAge:18, status:'active' },
+    ];
+
+    let showForm = false;
+    let editId   = null;
+
+    function render() {
+        document.getElementById('page-content').innerHTML = `
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-layer-group ml-2 text-purple-500"></i>المراحل الدراسية</h2>
+            <button onclick="openForm()" class="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-xl hover:bg-purple-700 text-sm font-medium">
+                <i class="fas fa-plus"></i> إضافة مرحلة
+            </button>
+        </div>
+
+        ${showForm ? `
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            <h3 class="font-semibold text-gray-700 mb-4 text-sm">
+                <i class="fas fa-${editId?'edit':'plus-circle'} ml-2 text-purple-500"></i>
+                ${editId ? 'تعديل المرحلة' : 'إضافة مرحلة جديدة'}
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div><label class="block text-xs font-medium text-gray-600 mb-1">اسم المرحلة *</label>
+                <input id="s-name" type="text" value="${editId ? stages.find(s=>s.id===editId).name : ''}"
+                    class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" placeholder="مثال: الصف العاشر"></div>
+
+                <div><label class="block text-xs font-medium text-gray-600 mb-1">الرمز *</label>
+                <input id="s-code" type="text" value="${editId ? stages.find(s=>s.id===editId).code : ''}"
+                    class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" placeholder="مثال: G10"></div>
+
+                <div><label class="block text-xs font-medium text-gray-600 mb-1">الحد الأدنى للعمر</label>
+                <input id="s-minage" type="number" value="${editId ? stages.find(s=>s.id===editId).minAge : ''}"
+                    class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" placeholder="15"></div>
+
+                <div><label class="block text-xs font-medium text-gray-600 mb-1">الحد الأقصى للعمر</label>
+                <input id="s-maxage" type="number" value="${editId ? stages.find(s=>s.id===editId).maxAge : ''}"
+                    class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" placeholder="16"></div>
+            </div>
+            <div class="flex gap-3 mt-4">
+                <button onclick="${editId?'saveEdit()':'addStage()'}" class="bg-purple-600 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-purple-700">
+                    <i class="fas fa-save ml-1"></i>${editId?'حفظ التعديل':'إضافة'}
+                </button>
+                <button onclick="closeForm()" class="px-6 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50">إلغاء</button>
+            </div>
+        </div>` : ''}
+
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-4 mb-6">
+            ${[
+                { label:'إجمالي المراحل', value: stages.length,                               icon:'fa-layer-group', color:'purple' },
+                { label:'إجمالي الفصول', value: stages.reduce((a,s)=>a+s.classes,0),          icon:'fa-door-open',   color:'blue'   },
+                { label:'إجمالي الطلاب', value: stages.reduce((a,s)=>a+s.students,0),         icon:'fa-users',       color:'green'  },
+            ].map(c=>`
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center
+                    ${c.color==='purple'?'bg-purple-50 text-purple-600':c.color==='blue'?'bg-blue-50 text-blue-600':'bg-green-50 text-green-600'}">
+                    <i class="fas ${c.icon} text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-gray-800">${c.value}</p>
+                    <p class="text-xs text-gray-500">${c.label}</p>
+                </div>
+            </div>`).join('')}
+        </div>
+
+        <!-- Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            ${stages.map(s=>`
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gradient-to-l from-purple-600 to-purple-800 px-5 py-4 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-white text-lg">${s.name}</h3>
+                        <p class="text-purple-200 text-xs mt-0.5">الرمز: ${s.code}</p>
+                    </div>
+                    <span class="px-2 py-1 rounded-full text-xs font-medium ${s.status==='active'?'bg-green-400/30 text-green-100':'bg-gray-400/30 text-gray-100'}">
+                        ${s.status==='active'?'نشطة':'موقوفة'}
+                    </span>
+                </div>
+                <div class="p-5">
+                    <div class="grid grid-cols-3 gap-3 mb-4 text-center">
+                        <div class="bg-gray-50 rounded-xl p-3">
+                            <p class="text-xl font-bold text-purple-600">${s.classes}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">فصل</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-3">
+                            <p class="text-xl font-bold text-blue-600">${s.students}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">طالب</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-3">
+                            <p class="text-xl font-bold text-green-600">${s.minAge}-${s.maxAge}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">العمر</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="openEdit(${s.id})" class="flex-1 flex items-center justify-center gap-1 border border-yellow-200 text-yellow-600 py-2 rounded-xl text-xs hover:bg-yellow-50">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                        <button onclick="toggleStatus(${s.id})" class="flex-1 flex items-center justify-center gap-1 border border-blue-200 text-blue-600 py-2 rounded-xl text-xs hover:bg-blue-50">
+                            <i class="fas fa-toggle-${s.status==='active'?'on':'off'}"></i> ${s.status==='active'?'إيقاف':'تفعيل'}
+                        </button>
+                        <button onclick="deleteStage(${s.id})" class="flex items-center justify-center border border-red-200 text-red-400 px-3 py-2 rounded-xl text-xs hover:bg-red-50">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    function openForm()   { editId = null; showForm = true;  render(); }
+    function closeForm()  { editId = null; showForm = false; render(); }
+    function openEdit(id) { editId = id;   showForm = true;  render(); }
+
+    function addStage() {
+        const name   = document.getElementById('s-name').value.trim();
+        const code   = document.getElementById('s-code').value.trim();
+        const minAge = parseInt(document.getElementById('s-minage').value) || 0;
+        const maxAge = parseInt(document.getElementById('s-maxage').value) || 0;
+        if(!name || !code) { showFlash('الاسم والرمز مطلوبان.','error'); return; }
+        stages.push({ id: Date.now(), name, code, classes:0, students:0, minAge, maxAge, status:'active' });
+        closeForm();
+        showFlash('تم إضافة المرحلة بنجاح.');
+    }
+
+    function saveEdit() {
+        const s = stages.find(x=>x.id===editId);
+        s.name   = document.getElementById('s-name').value.trim();
+        s.code   = document.getElementById('s-code').value.trim();
+        s.minAge = parseInt(document.getElementById('s-minage').value) || s.minAge;
+        s.maxAge = parseInt(document.getElementById('s-maxage').value) || s.maxAge;
+        closeForm();
+        showFlash('تم حفظ التعديل بنجاح.');
+    }
+
+    function toggleStatus(id) {
+        const s = stages.find(x=>x.id===id);
+        s.status = s.status==='active' ? 'inactive' : 'active';
+        render();
+        showFlash(`تم ${s.status==='active'?'تفعيل':'إيقاف'} المرحلة.`);
+    }
+
+    function deleteStage(id) {
+        if(!confirm('حذف هذه المرحلة نهائياً؟')) return;
+        stages = stages.filter(s=>s.id!==id);
+        render();
+        showFlash('تم حذف المرحلة.');
+    }
+
+    render();
+}
+</script>
+</body>
+</html>

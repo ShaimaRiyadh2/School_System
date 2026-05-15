@@ -1,0 +1,4 @@
+body { font-family: 'Segoe UI', Tahoma, sans-serif; }
+.sidebar-link.active { background: rgba(168,142,219,0.15); color: #A88EDB; border-right: 3px solid #A88EDB; }
+.sidebar-link:hover  { background: rgba(168,142,219,0.08); }
+[x-cloak] { display: none !important; }

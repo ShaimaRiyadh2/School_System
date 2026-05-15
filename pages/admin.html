@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة النظام - School System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#A88EDB'}}}}}</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+<body class="bg-gray-100">
+<div id="app-layout"></div>
+<script src="../js/layout.js"></script>
+<script>
+const auth = getAuth();
+if(auth){
+    if(auth.role_category !== 'Admin'){ window.location.href='dashboard.html'; }
+    renderLayout('admin.html');
+    document.getElementById('breadcrumb-slot').innerHTML=`<span class="text-gray-400"><i class="fas fa-home ml-1"></i></span><span class="mx-2 text-gray-300">/</span><span class="font-medium text-gray-700">إدارة النظام</span>`;
+
+    const stats = { users:280, students:248, staff:32, classes:18, messages:156, logs:1240 };
+    const logs = [
+        { user:'admin',   action:'تسجيل دخول ناجح',    module:'Auth',      time:'منذ 5 د'  },
+        { user:'teacher', action:'حفظ الحضور',          module:'Attendance', time:'منذ 20 د' },
+        { user:'admin',   action:'إضافة مستخدم جديد',  module:'Admin',     time:'منذ 1 س'  },
+        { user:'teacher', action:'إدخال درجات',         module:'Markbook',  time:'منذ 2 س'  },
+        { user:'admin',   action:'تعديل الإعدادات',     module:'Settings',  time:'منذ 3 س'  },
+    ];
+
+    document.getElementById('page-content').innerHTML = `
+    <h2 class="text-xl font-bold text-gray-800 mb-6"><i class="fas fa-cog ml-2 text-purple-500"></i>لوحة الإدارة</h2>
+
+    <!-- Quick Links -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        ${[
+            { url:'students.html',  icon:'fa-users',        label:'المستخدمون',       color:'blue'   },
+            { url:'#',              icon:'fa-calendar-alt', label:'السنوات الدراسية', color:'orange' },
+            { url:'#',              icon:'fa-layer-group',  label:'المراحل',          color:'teal'   },
+            { url:'#',              icon:'fa-door-open',    label:'الفصول',           color:'green'  },
+        ].map(l=>`
+        <a href="${l.url}" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center
+                ${l.color==='blue'?'bg-blue-100 text-blue-600':l.color==='orange'?'bg-orange-100 text-orange-600':l.color==='teal'?'bg-teal-100 text-teal-600':'bg-green-100 text-green-600'}">
+                <i class="fas ${l.icon}"></i>
+            </div>
+            <span class="font-semibold text-gray-700 text-sm">${l.label}</span>
+        </a>`).join('')}
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        ${[
+            { label:'إجمالي المستخدمين', value:stats.users,    icon:'fa-users',              color:'blue'   },
+            { label:'الطلاب',            value:stats.students,  icon:'fa-user-graduate',      color:'green'  },
+            { label:'المعلمون',          value:stats.staff,     icon:'fa-chalkboard-teacher', color:'orange' },
+            { label:'الفصول',            value:stats.classes,   icon:'fa-door-open',          color:'purple' },
+            { label:'الرسائل',           value:stats.messages,  icon:'fa-envelope',           color:'pink'   },
+            { label:'سجلات النظام',      value:stats.logs,      icon:'fa-history',            color:'gray'   },
+        ].map(c=>`
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center
+                ${c.color==='blue'?'bg-blue-50 text-blue-600':c.color==='green'?'bg-green-50 text-green-600':c.color==='orange'?'bg-orange-50 text-orange-600':c.color==='purple'?'bg-purple-50 text-purple-600':c.color==='pink'?'bg-pink-50 text-pink-600':'bg-gray-50 text-gray-600'}">
+                <i class="fas ${c.icon} text-xl"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-gray-800">${c.value}</p>
+                <p class="text-xs text-gray-500">${c.label}</p>
+            </div>
+        </div>`).join('')}
+    </div>
+
+    <!-- Recent Logs -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="font-semibold text-gray-800 text-sm"><i class="fas fa-history ml-2 text-gray-400"></i>آخر النشاطات</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">المستخدم</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">الإجراء</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">الوحدة</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500">الوقت</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    ${logs.map(l=>`
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-3 text-gray-700 font-medium">${l.user}</td>
+                        <td class="px-6 py-3 text-gray-600">${l.action}</td>
+                        <td class="px-6 py-3"><span class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">${l.module}</span></td>
+                        <td class="px-6 py-3 text-gray-400 text-xs">${l.time}</td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>
+    </div>`;
+}
+</script>
+</body>
+</html>
